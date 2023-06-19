@@ -1,0 +1,1 @@
+1. 注意虽然`cmtl.h`头文件将`include/`下的头文件都包含在内了。但是并不意味着头文件里声明的函树，可以在`ldrkrl/`中的每一个函数中使用，因为`ldrkrl/`中函数在编译时分成了三个不同模块`initldrimh.bin`,`initldrsve.bin`,`initldrkrl.bin`其中`initldrimh.bin`是被GRUB识别并执行的模块，`initldrimh.bin`负责将`initldrsve.bin`和`initldrkrl.bin`加载到指定内存并执行`initldrkrl.bin`(二级引导器模块)，该模块通过`initldrsve.bin`模块调用BIOS中断来收集机器信息
