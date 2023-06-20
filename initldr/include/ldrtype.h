@@ -15,11 +15,6 @@
 #define BFH_RWONE_ER 2
 #define BFH_RWALL_OK 3
 
-#define FHDSC_NMAX 192                  //文件头描述符中文件名最大长度
-#define FHDSC_SZMAX 256                 //文件头描述符大小256B=64B+192B
-#define MDC_ENDGIC 0xaaffaaffaaffaaff   //映像文件结束标志:mlosrddsc_t.mdc_endgic
-#define MDC_RVGIC 0xffaaffaaffaaffaa    //映像文件版本:mlosrddsc_t.mdc_rv
-
 #define REALDRV_PHYADR 0x1000           //实模式模块initldrsve.bin地址
 #define ILDRKRL_PHYADR 0x200000         //二级引导器initldrkrl.bin地址
 #define IMGSHEL_PHYADR 0x30000          //
@@ -30,10 +25,13 @@
 #define KINITPAGE_PHYADR 0x1000000      //页表首地址:16MB处
 #define KINITFRVM_PHYADR 0x800000       //
 #define KINITFRVM_SZ 0x400000           //
+
 #define LDRFILEADR IMGFILE_PHYADR       //映像文件地址
 #define MLOSDSC_OFF (0x1000)            //mlosrddsc_t的偏移地址4KB，OFF是offset    
 #define MRDDSC_ADR (mlosrddsc_t*)(LDRFILEADR+0x1000)    //映像文件头描述符地址(映像文件地址偏移4KB=映像文件头描述符的地址)
 
+
+/*==========================================================MMU页表相关的数据==================================================*/
 #define KRNL_VIRTUAL_ADDRESS_START 0xffff800000000000   //内核虚拟地址空间起始地址
 //顶级页目录标志字段
 #define KPML4_P (1<<0)          //页面存在位
@@ -59,13 +57,19 @@
 #define KPDE_D (1<<6)           //页面脏位，页面写入数据时由MMU设置
 #define KPDE_PS (1<<7)          //2MB分页下，PS必须为1
 #define KPDE_G (1<<8)           //全局标志位
-#define KPDE_PAT (1<<12)        //
+#define KPDE_PAT (1<<12)        //页面属性表
 
 #define KPML4_SHIFT 39          //提取一级页目录索引右移位数
 #define KPDPTTE_SHIFT 30        //提取二级页目录索引右移位数
 #define KPDP_SHIFT 21           //提取三级页目录索引右移位数
 #define PGENTY_SIZE 512         //页目录中页的个数2MB分页的话，4KB页目录可以记录512个页目录项
 
+
+/*===========================================================eki映像相关的结构==============================================*/
+#define FHDSC_NMAX 192                  //文件头描述符中文件名最大长度
+#define FHDSC_SZMAX 256                 //文件头描述符大小256B=64B+192B
+#define MDC_ENDGIC 0xaaffaaffaaffaaff   //映像文件结束标志:mlosrddsc_t.mdc_endgic
+#define MDC_RVGIC 0xffaaffaaffaaffaa    //映像文件版本:mlosrddsc_t.mdc_rv
 //文件头描述符，用于描述内核映像中的文件
 typedef struct s_fhdsc{
     u64_t fhd_type;             //文件类型
@@ -110,13 +114,18 @@ typedef struct s_mlosrddsc{
     u64_t mdc_rv;           //映像文件版本
 }mlosrddsc_t;
 
+
+/*============================================================BIOS中断=========================================================*/
 //实模式调用BIOS中断
 #define RLINTNR(x) (x*2)    //用于调用realadr_call_entry时传入参数
+//BIOS中断调用入口
+void REGCALL realadr_call_entry(u16_t callint,u16_t val1,u16_t val2);
 
+/*===========================================================E820===============================================================*/
 //内存视图类型
 #define RAM_USABLE 1    //可用内存
 #define RAM_RESERV 2    //保留内存不可使用
-#define RAM_ACPIREC 3   //ACPI表相关的
+#define RAM_ACPIREC 3   //ACPI data相关的
 #define RAM_ACPINVS 4   //ACPI NVS空间
 #define RAM_AREACON 5   //包含坏内存
 //e820数组，存储内存视图
@@ -126,35 +135,81 @@ typedef struct s_e820{
     u32_t type;         //内存区域类型
 }__attribute__((packed)) e820map_t;
 
-//
+
+/*============================================================ACPI============================================================*/
+//ACPI相关结构体
+typedef struct s_MRSDP{
+    u64_t rp_sign;
+    u8_t rp_chksum;
+    u8_t rp_oemid[6];
+    u8_t rp_revn;
+    u32_t rp_rsdtphyadr;
+    u32_t rp_len;
+    u64_t rp_xsdtphyadr;
+    u8_t rp_echksum;
+    u8_t rp_resv[3];
+}__attribute__((packed)) mrsdp_t;
+
+
+/*===========================================================VBE模式===========================================================*/
+//vbe相关的设置
+#define VBE_DISPI_IOPORT_INDEX (0x01CE)
+#define VBE_DISPI_IOPORT_DATA (0x01CF)
+#define VBE_DISPI_INDEX_ID (0)
+#define VBE_DISPI_INDEX_XRES (1)
+#define VBE_DISPI_INDEX_YRES (2)
+#define VBE_DISPI_INDEX_BPP (3)
+#define VBE_DISPI_INDEX_ENABLE (4)
+#define VBE_DISPI_INDEX_BANK (5)
+#define VBE_DISPI_INDEX_VIRT_WIDTH (6)
+#define VBE_DISPI_INDEX_VIRT_HEIGHT (7)
+#define VBE_DISPI_INDEX_X_OFFSET (8)
+#define VBE_DISPI_INDEX_Y_OFFSET (9)
+#define BGA_DEV_ID0 (0xB0C0)    //- setting X and Y resolution and bit depth (8 BPP only), banked mode
+#define BGA_DEV_ID1 (0xB0C1)    //- virtual width and height, X and Y offset0
+#define BGA_DEV_ID2 (0xB0C2)    //- 15, 16, 24 and 32 BPP modes, support for linear frame buffer, support for retaining memory contents on mode switching
+#define BGA_DEV_ID3 (0xB0C3)    //- support for getting capabilities, support for using 8 bit DAC
+#define BGA_DEV_ID4 (0xB0C4)    //- VRAM increased to 8 MB
+#define BGA_DEV_ID5 (0xB0C5)    //- VRAM increased to 16 MB? [TODO: verify and check for other changes]
+#define VBE_DISPI_BPP_4 (0x04)
+#define VBE_DISPI_BPP_8 (0x08)
+#define VBE_DISPI_BPP_15 (0x0F)
+#define VBE_DISPI_BPP_16 (0x10)
+#define VBE_DISPI_BPP_24 (0x18)
+#define VBE_DISPI_BPP_32 (0x20)
+#define VBE_DISPI_DISABLED (0x00)
+#define VBE_DISPI_ENABLED (0x01)
+#define VBE_DISPI_LFB_ENABLED (0x40)
+
+//VBE的基本信息
 typedef struct s_VBEINFO{
-    char vbesignature[4];
-    u16_t vbeversion;
-    u32_t oemstringptr;
-    u32_t capabilities;
-    u32_t videomodeptr;
-    u16_t totalmemory;
-    u16_t oemsoftwarerev;
-    u32_t oemvendornameptr;
-    u32_t oemproductnameptr;
-    u32_t oemproductrevptr;
-    u8_t reserved[222];
-    u8_t oemdata[256];
+    char vbesignature[4];       //VBE版本标志符
+    u16_t vbeversion;           //VBE版本号
+    u32_t oemstringptr;         //OEM字符串指针
+    u32_t capabilities;         //显卡的功能和特性
+    u32_t videomodeptr;         //支持视频模式列表的指针
+    u16_t totalmemory;          //显存的总大小
+    u16_t oemsoftwarerev;       //OEM软件版本号
+    u32_t oemvendornameptr;     //OEM厂商名称的指针
+    u32_t oemproductnameptr;    //OEM产品名称的指针
+    u32_t oemproductrevptr;     //OEM产品版本号的指针
+    u8_t reserved[222];         //保留字段
+    u8_t oemdata[256];          //OEM数据
 }__attribute__((packed)) vbeinfo_t;
 
-//
+//VBE的详细信息
 typedef struct s_VBEOMINFO{
-    u16_t ModeAttributes;
-    u8_t  WinAAttributes;
-    u8_t  WinBAttributes;
-    u16_t WinGranularity;
-    u16_t WinSize;
-    u16_t WinASegment;
-    u16_t WinBSegment;
-    u32_t WinFuncPtr;
-    u16_t BytesPerScanLine;
-    u16_t XResolution;
-    u16_t YResolution;
+    u16_t ModeAttributes;       //显示模式的属性
+    u8_t  WinAAttributes;       //Window A的属性
+    u8_t  WinBAttributes;       //Window B的属性
+    u16_t WinGranularity;       //Window的粒度
+    u16_t WinSize;              //Window的大小
+    u16_t WinASegment;          //Window A的段地址
+    u16_t WinBSegment;          //Window B的段地址
+    u32_t WinFuncPtr;           //Window函数指针
+    u16_t BytesPerScanLine;     //每行的字节数
+    u16_t XResolution;          //水平分辨率
+    u16_t YResolution;          //垂直分辨率
     u8_t  XCharSize;
     u8_t  YCharSize;
     u8_t  NumberOfPlanes;
@@ -191,6 +246,8 @@ typedef struct s_VBEOMINFO{
     u8_t  Reserved3[189];
 }__attribute__((packed)) vbeominfo_t;
 
+
+/*=====================================================================图形化控制相关的=================================================================*/
 //由于二级引导器只是初始化了vbe模式并没有使用它来向屏幕输出，因此像素结构未被使用
 typedef u32_t pixl_t;   //使用一个32位的数据来表示4字节的像素
 #define ARGB(a,r,g,b) ((a<<24)|(r<<16)|(g<<8)|b)  //数据顺序ARGB，通常情况下使用pixl_t和BGRA宏
@@ -200,7 +257,7 @@ typedef u32_t pixl_t;   //使用一个32位的数据来表示4字节的像素
 #define BGAMODE 3
 //图形信息结构体
 typedef struct s_GRAPH{
-    u32_t gh_mode;
+    u32_t gh_mode;          //图形模式
     u32_t gh_x;
     u32_t gh_y;
     u32_t gh_framphyadr;
@@ -221,29 +278,17 @@ typedef struct s_GRAPH{
     u32_t gh_nxtcharsx;
     u32_t gh_nxtcharsy;
     u32_t gh_linesz;
-    vbeinfo_t gh_vbeinfo;
-    vbeominfo_t gh_vminfo;
+    vbeinfo_t gh_vbeinfo;   //VBE基本信息
+    vbeominfo_t gh_vminfo;  //VBE详细信息
 }__attribute__((packed)) graph_t;
 
+
+/*=======================================================================机器信息相关================================================================*/
+//机器信息结构体machbstart_t的地址，1MB地址处
+#define MBSPADR ((machbstart_t*)(0x100000))
 //机器信息结构体的魔数：LOMSMBSP:lomsmbsp,正好是8个ASCII码，存入64位的数据中
 #define MBS_MIGC (u64_t)((((u64_t)'L')<<56)|(((u64_t)'M')<<48)|(((u64_t)'O')<<40)|(((u64_t)'S')<<32)|(((u64_t)'M')<<24)|(((u64_t)'B')<<16)|(((u64_t)'S')<<8)|((u64_t)'P'))
-
-//ACPI相关结构体
-typedef struct s_MRSDP{
-    u64_t rp_sign;
-    u8_t rp_chksum;
-    u8_t rp_oemid[6];
-    u8_t rp_revn;
-    u32_t rp_rsdtphyadr;
-    u32_t rp_len;
-    u64_t rp_xsdtphyadr;
-    u8_t rp_echksum;
-    u8_t rp_resv[3];
-}__attribute__((packed)) mrsdp_t;
-
-/**
- * 机器信息结构体
- */
+//机器信息结构体
 typedef struct s_MACHBSTART{
     u64_t   mb_migc;                //魔数
     u64_t   mb_chksum;              //校验和
@@ -288,38 +333,6 @@ typedef struct s_MACHBSTART{
     mrsdp_t mb_mrsdp;               //
     graph_t mb_ghparm;              //图形信息
 }__attribute__((packed)) machbstart_t;
-
-#define MBSPADR ((machbstart_t*)(0x100000))     //机器信息结构体machbstart_t的地址，1MB地址处
-#define VBE_DISPI_IOPORT_INDEX (0x01CE)
-#define VBE_DISPI_IOPORT_DATA (0x01CF)
-#define VBE_DISPI_INDEX_ID (0)
-#define VBE_DISPI_INDEX_XRES (1)
-#define VBE_DISPI_INDEX_YRES (2)
-#define VBE_DISPI_INDEX_BPP (3)
-#define VBE_DISPI_INDEX_ENABLE (4)
-#define VBE_DISPI_INDEX_BANK (5)
-#define VBE_DISPI_INDEX_VIRT_WIDTH (6)
-#define VBE_DISPI_INDEX_VIRT_HEIGHT (7)
-#define VBE_DISPI_INDEX_X_OFFSET (8)
-#define VBE_DISPI_INDEX_Y_OFFSET (9)
-#define BGA_DEV_ID0 (0xB0C0)    //- setting X and Y resolution and bit depth (8 BPP only), banked mode
-#define BGA_DEV_ID1 (0xB0C1)    //- virtual width and height, X and Y offset0
-#define BGA_DEV_ID2 (0xB0C2)    //- 15, 16, 24 and 32 BPP modes, support for linear frame buffer, support for retaining memory contents on mode switching
-#define BGA_DEV_ID3 (0xB0C3)    //- support for getting capabilities, support for using 8 bit DAC
-#define BGA_DEV_ID4 (0xB0C4)    //- VRAM increased to 8 MB
-#define BGA_DEV_ID5 (0xB0C5)    //- VRAM increased to 16 MB? [TODO: verify and check for other changes]
-#define VBE_DISPI_BPP_4 (0x04)
-#define VBE_DISPI_BPP_8 (0x08)
-#define VBE_DISPI_BPP_15 (0x0F)
-#define VBE_DISPI_BPP_16 (0x10)
-#define VBE_DISPI_BPP_24 (0x18)
-#define VBE_DISPI_BPP_32 (0x20)
-#define VBE_DISPI_DISABLED (0x00)
-#define VBE_DISPI_ENABLED (0x01)
-#define VBE_DISPI_LFB_ENABLED (0x40)
-
-//BIOS中断调用入口
-void REGCALL realadr_call_entry(u16_t callint,u16_t val1,u16_t val2);
 
 
 #endif // LDRTYPE_H
