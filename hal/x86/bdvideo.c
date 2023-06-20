@@ -10,14 +10,15 @@
  * 
  */
 PUBLIC LKINIT void init_dftgraph(){
-    dftgraph_t *kghp = &kdftgh;
-    machbstart_t *kmbsp = &kmachbsp;
-    memset(kghp, 0, sizeof(dftgraph_t));
+    dftgraph_t *kghp = &kdftgh;     //全局图形信息结构体内存地址
+    machbstart_t *kmbsp = &kmachbsp; //全局机器信息结构体内存地址
+    memset(kghp, 0, sizeof(dftgraph_t)); //清零全局信息结构体内存
+    //将二级引导器中收集的信息，复制到新的图形结构体数组中
     kghp->gh_mode = kmbsp->mb_ghparm.gh_mode;
     kghp->gh_x = kmbsp->mb_ghparm.gh_x;
     kghp->gh_y = kmbsp->mb_ghparm.gh_y;
-    kghp->gh_framphyadr = phyadr_to_viradr((adr_t)kmbsp->mb_ghparm.gh_framphyadr);
-    kghp->gh_fvrmphyadr = phyadr_to_viradr((adr_t)kmbsp->mb_fvrmphyadr);
+    kghp->gh_framphyadr = phyadr_to_viradr((adr_t)kmbsp->mb_ghparm.gh_framphyadr);  //
+    kghp->gh_fvrmphyadr = phyadr_to_viradr((adr_t)kmbsp->mb_fvrmphyadr);            //
     kghp->gh_fvrmsz = kmbsp->mb_fvrmsz;
     kghp->gh_onepixbits = kmbsp->mb_ghparm.gh_onepixbits;
     kghp->gh_onepixbyte = kmbsp->mb_ghparm.gh_onepixbits / 8;
@@ -27,7 +28,7 @@ PUBLIC LKINIT void init_dftgraph(){
     kghp->gh_nextbnk = kmbsp->mb_ghparm.gh_nextbnk;
     kghp->gh_banksz = kmbsp->mb_ghparm.gh_banksz;
 
-    kghp->gh_fontadr = phyadr_to_viradr((adr_t)kmbsp->mb_bfontpadr);
+    kghp->gh_fontadr = phyadr_to_viradr((adr_t)kmbsp->mb_bfontpadr);    //将原先存放位置物理地址转换为虚拟地址
     kghp->gh_fontsz = kmbsp->mb_bfontsz;
     kghp->gh_fnthight = 20;
     kghp->gh_linesz = 20 + 4;

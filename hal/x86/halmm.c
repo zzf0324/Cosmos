@@ -1,5 +1,6 @@
 /**
  * HAL内存初始化头文件
+ * phymmarge的作用就是把对e820数组进行遍历，将同类内存放在一块
  */
 
 #include "cosmostypes.h"
@@ -10,10 +11,12 @@
  * 初始化phymmarge_t结构体
  */
 void phymmarge_t_init(phymmarge_t *initp){
-    if (NULL == initp){
+    if (NULL == initp){ //参数检查
         return;
     }
+    //设置自旋锁
     hal_spinlock_init(&initp->pmr_lock);
+    //清空各字段
     initp->pmr_type = 0;
     initp->pmr_stype = 0;
     initp->pmr_dtype = 0;
@@ -31,7 +34,7 @@ void phymmarge_t_init(phymmarge_t *initp){
 
 
 /**
- * 
+ * 获取phymmarge的地址和大小
  */
 void ret_phymmarge_adrandsz(machbstart_t *mbsp, phymmarge_t **retpmrvadr, u64_t *retpmrsz){
     if (NULL == mbsp || 0 == mbsp->mb_e820sz || NULL == mbsp->mb_e820padr || 0 == mbsp->mb_e820nr){
@@ -56,40 +59,41 @@ void ret_phymmarge_adrandsz(machbstart_t *mbsp, phymmarge_t **retpmrvadr, u64_t 
  * 把e820中的信息复制到phymmarge_t结构中来
  */
 bool_t init_one_pmrge(e820map_t *e8p, phymmarge_t *pmargep){
-    u32_t ptype = 0, pstype = 0;
-    if (NULL == e8p || NULL == pmargep){
+    u32_t type = 0, stype = 0;
+    if (NULL == e8p || NULL == pmargep){    //参数检查
         return FALSE;
     }
     phymmarge_t_init(pmargep);
     switch (e8p->type){
-    case RAM_USABLE:
-        ptype = PMR_T_OSAPUSERRAM;
-        pstype = RAM_USABLE;
+    case RAM_USABLE:    //可用内存
+        type = PMR_T_OSAPUSERRAM;
+        stype = RAM_USABLE;
         break;
-    case RAM_RESERV:
-        ptype = PMR_T_RESERVRAM;
-        pstype = RAM_RESERV;
+    case RAM_RESERV:    //保留内存
+        type = PMR_T_RESERVRAM;
+        stype = RAM_RESERV;
         break;
-    case RAM_ACPIREC:
-        ptype = PMR_T_HWUSERRAM;
-        pstype = RAM_ACPIREC;
+    case RAM_ACPIREC:   //ACPI data
+        type = PMR_T_HWUSERRAM;
+        stype = RAM_ACPIREC;
         break;
-    case RAM_ACPINVS:
-        ptype = PMR_T_HWUSERRAM;
-        pstype = RAM_ACPINVS;
+    case RAM_ACPINVS:   //APCI NVS
+        type = PMR_T_HWUSERRAM;
+        stype = RAM_ACPINVS;
         break;
-    case RAM_AREACON:
-        ptype = PMR_T_BUGRAM;
-        pstype = RAM_AREACON;
+    case RAM_AREACON:   //不可用内存
+        type = PMR_T_BUGRAM;
+        stype = RAM_AREACON;
         break;
     default:
         break;
     }
-    if (0 == ptype){
+    if (0 == type){
         return FALSE;
     }
-    pmargep->pmr_type = ptype;
-    pmargep->pmr_stype = pstype;
+    //填写相应的字段
+    pmargep->pmr_type = type;
+    pmargep->pmr_stype = stype;
     pmargep->pmr_flgs = PMR_F_X86_64;
     pmargep->pmr_saddr = e8p->saddr;
     pmargep->pmr_lsize = e8p->lsize;
@@ -100,12 +104,12 @@ bool_t init_one_pmrge(e820map_t *e8p, phymmarge_t *pmargep){
 /**
  * 交换两个phymmarge_t结构体对象
  */
-void phymmarge_swap(phymmarge_t *s, phymmarge_t *d){
+static void phymmarge_swap(phymmarge_t *src, phymmarge_t *dst){
     phymmarge_t tmp;
     phymmarge_t_init(&tmp);
-    memcopy(s, &tmp, sizeof(phymmarge_t));
-    memcopy(d, s, sizeof(phymmarge_t));
-    memcopy(&tmp, d, sizeof(phymmarge_t));
+    memcopy(src, &tmp, sizeof(phymmarge_t));
+    memcopy(dst, src, sizeof(phymmarge_t));
+    memcopy(&tmp, dst, sizeof(phymmarge_t));
     return;
 }
 
@@ -114,6 +118,7 @@ void phymmarge_swap(phymmarge_t *s, phymmarge_t *d){
  */
 void phymmarge_sort(phymmarge_t *argp, u64_t nr){
     u64_t i, j, k = nr - 1;
+    //交换排序
     for (j = 0; j < k; j++){
         for (i = 0; i < k - j; i++){
             if (argp[i].pmr_saddr > argp[i + 1].pmr_saddr){
@@ -130,9 +135,10 @@ void phymmarge_sort(phymmarge_t *argp, u64_t nr){
  */
 u64_t initpmrge_core(e820map_t *e8sp, u64_t e8nr, phymmarge_t *pmargesp){
     u64_t retnr = 0;
-    if (NULL == e8sp || NULL == pmargesp || e8nr < 1){
+    if (NULL == e8sp || NULL == pmargesp || e8nr < 1){  //参数检查
         return 0;
     }
+    //循环遍历e820数组元素
     for (u64_t i = 0; i < e8nr; i++){
         //根据收集的e820数组建立一个phymmarge_t结构
         if (init_one_pmrge(&e8sp[i], &pmargesp[i]) == FALSE){
@@ -183,7 +189,7 @@ void init_phymmarge(){
 }
 
 /**
- * 总管函数
+ * 内存初始化总控函数
  */
 void init_halmm(){
     init_phymmarge();

@@ -49,19 +49,6 @@
 #define KRNL_MAP_VIRTADDRESS_END (KRNL_MAP_VIRTADDRESS_START+KRNL_MAP_VIRTADDRESS_SIZE)     //内核虚拟地址空间映射用的结束地址
 #define KRNL_ADDR_ERROR 0xf800000000000                         //表示一个出错地址，当地址映射出错时返回该地址
 
-//
-typedef struct s_MRSDP{
-    u64_t rp_sign;
-    u8_t rp_chksum;
-    u8_t rp_oemid[6];
-    u8_t rp_revn;
-    u32_t rp_rsdtphyadr;
-    u32_t rp_len;
-    u64_t rp_xsdtphyadr;
-    u8_t rp_echksum;
-    u8_t rp_resv[3];
-}__attribute__((packed)) mrsdp_t;
-
 
 /*======================================================================================================================================*/
 #define MBSPADR ((machbstart_t*)(0x100000))     //机器信息结构体地址:1MB处
@@ -69,48 +56,46 @@ typedef struct s_MRSDP{
 #define MBS_MIGC (u64_t)((((u64_t)'L')<<56)|(((u64_t)'M')<<48)|(((u64_t)'O')<<40)|(((u64_t)'S')<<32)|(((u64_t)'M')<<24)|(((u64_t)'B')<<16)|(((u64_t)'S')<<8)|((u64_t)'P'))
 //机器信息结构数组
 typedef struct s_MACHBSTART{
-    u64_t   mb_migc;            //LMOSMBSP//0
-    u64_t   mb_chksum;          //8
-    u64_t   mb_krlinitstack;    //16
-    u64_t   mb_krlitstacksz;    //24
-    u64_t   mb_imgpadr;
-    u64_t   mb_imgsz;
-    u64_t   mb_krlimgpadr;
-    u64_t   mb_krlsz;
-    u64_t   mb_krlvec;
-    u64_t   mb_krlrunmode;
-    u64_t   mb_kalldendpadr;
-    u64_t   mb_ksepadrs;
-    u64_t   mb_ksepadre;
-    u64_t   mb_kservadrs;
-    u64_t   mb_kservadre;
-    u64_t   mb_nextwtpadr;
-    u64_t   mb_bfontpadr;
-    u64_t   mb_bfontsz;
-    u64_t   mb_fvrmphyadr;
-    u64_t   mb_fvrmsz;
-    u64_t   mb_cpumode;
-    u64_t   mb_memsz;
-    u64_t   mb_e820padr;
-    u64_t   mb_e820nr;
-    u64_t   mb_e820sz;
-    u64_t   mb_e820expadr;
-    u64_t   mb_e820exnr;
-    u64_t   mb_e820exsz;
-    u64_t   mb_memznpadr;
-    u64_t   mb_memznnr;
-    u64_t   mb_memznsz;
-    u64_t   mb_memznchksum;
-    u64_t   mb_memmappadr;
-    u64_t   mb_memmapnr;
-    u64_t   mb_memmapsz;
-    u64_t   mb_memmapchksum;
-    u64_t   mb_pml4padr;
-    u64_t   mb_subpageslen;
-    u64_t   mb_kpmapphymemsz;
-    u64_t   mb_ebdaphyadr;
-    mrsdp_t mb_mrsdp;
-    graph_t mb_ghparm;
+    u64_t   mb_migc;            //魔数
+    u64_t   mb_chksum;          //校验和
+    u64_t   mb_krlinitstack;    //内核栈地址
+    u64_t   mb_krlitstacksz;    //内核栈大小
+    u64_t   mb_imgpadr;         //操作系统映像(eki文件)地址
+    u64_t   mb_imgsz;           //操作系统映像大小
+    u64_t   mb_krlimgpadr;      //内核(Cosmos.bin)地址
+    u64_t   mb_krlsz;           //内核(Cosmos.bin)大小
+    u64_t   mb_krlvec;          //
+    u64_t   mb_krlrunmode;      //
+    u64_t   mb_kalldendpadr;    //
+    u64_t   mb_ksepadrs;        //
+    u64_t   mb_ksepadre;        //
+    u64_t   mb_kservadrs;       //
+    u64_t   mb_kservadre;       //
+    u64_t   mb_nextwtpadr;      //下一段空闲内存首地址（4K对齐）
+    u64_t   mb_bfontpadr;       //操作系统字体地址
+    u64_t   mb_bfontsz;         //操作系统字体大小
+    u64_t   mb_fvrmphyadr;      //机器显存地址
+    u64_t   mb_fvrmsz;          //机器显存大小
+    u64_t   mb_cpumode;         //CPU工作模式
+    u64_t   mb_memsz;           //机器内存大小
+    u64_t   mb_e820padr;        //机器e80数组地址
+    u64_t   mb_e820nr;          //机器e80数组元素个数
+    u64_t   mb_e820sz;          //机器e80数组大小
+    u64_t   mb_e820expadr;      //
+    u64_t   mb_e820exnr;        //
+    u64_t   mb_e820exsz;        //
+    u64_t   mb_memznpadr;       //
+    u64_t   mb_memznnr;         //
+    u64_t   mb_memznsz;         //
+    u64_t   mb_memznchksum;     //
+    u64_t   mb_memmappadr;      //
+    u64_t   mb_memmapnr;        //
+    u64_t   mb_memmapsz;        //
+    u64_t   mb_memmapchksum;    //
+    u64_t   mb_pml4padr;        //
+    u64_t   mb_subpageslen;     //
+    u64_t   mb_kpmapphymemsz;   //
+    graph_t mb_ghparm;          //
 }__attribute__((packed)) machbstart_t;
 
 

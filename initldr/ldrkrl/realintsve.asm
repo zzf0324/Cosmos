@@ -193,9 +193,9 @@ disable_nmi:		;禁用nmi(不可屏蔽中断)的函数，不可屏蔽中断通常
 func_table:		;函数表，包含要调用的汇编函数的地址(标号)
 	dw _getmmap		;获取内存布局视图的函数
 	dw _read		;读取硬盘的函数
-     dw _getvbemode 		;获取显卡vbe模式
-     dw _getvbeonemodeinfo	;获取显卡vbe模式的数据
-     dw _setvbemode		;设置显卡的vbe模式
+     	dw _getvbemode 		;获取显卡vbe模式
+     	dw _getvbeonemodeinfo	;获取显卡vbe模式的数据
+     	dw _setvbemode		;设置显卡的vbe模式
 
 ;下面是错误消息字符串
 int131errmsg: db     "int 13 read hdsk error"

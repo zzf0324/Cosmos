@@ -207,7 +207,7 @@ typedef struct s_DFTGRAPH{
     u64_t gh_fvrmphyadr;    //显存虚拟地址
     u64_t gh_fvrmsz;        //显存大小
     u64_t gh_onepixbits;    //一个像素占用的数据位数
-    u64_t gh_onepixbyte;    //
+    u64_t gh_onepixbyte;    //一个像素占用的数据字节数
     u64_t gh_vbemodenr;     //vbe模式号
     u64_t gh_bank;          //显存的bank数
     u64_t gh_curdipbnk;     //当前bank

@@ -131,21 +131,6 @@ typedef struct s_e820{
 }__attribute__((packed)) e820map_t;
 
 
-/*============================================================ACPI============================================================*/
-//ACPI相关结构体
-typedef struct s_MRSDP{
-    u64_t rp_sign;
-    u8_t rp_chksum;
-    u8_t rp_oemid[6];
-    u8_t rp_revn;
-    u32_t rp_rsdtphyadr;
-    u32_t rp_len;
-    u64_t rp_xsdtphyadr;
-    u8_t rp_echksum;
-    u8_t rp_resv[3];
-}__attribute__((packed)) mrsdp_t;
-
-
 /*===========================================================VBE模式===========================================================*/
 //vbe相关的设置
 #define VBE_DISPI_IOPORT_INDEX (0x01CE)
@@ -324,8 +309,6 @@ typedef struct s_MACHBSTART{
     u64_t   mb_pml4padr;            //机器顶级页目录地址
     u64_t   mb_subpageslen;         //一、二、三级页目录总占用的内存大小
     u64_t   mb_kpmapphymemsz;       //操作系统映射空间大小
-    u64_t   mb_ebdaphyadr;          //ACPI的edba存储区内存地址，大小通常为1KB
-    mrsdp_t mb_mrsdp;               //
     graph_t mb_ghparm;              //图形信息
 }__attribute__((packed)) machbstart_t;
 

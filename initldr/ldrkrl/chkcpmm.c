@@ -4,96 +4,10 @@
 
 #include "cmctl.h"
 
-/**
- * 获取ACPI的EDBA内存地址，通常位于0x9FC00-0x9fFFF，同1KB大小
- * ebda是acpi的内存区域，由系统bios用于存储一些额外的系统配置数据和信息，具有一定的数据结构
- */
-static unsigned int acpi_get_bios_ebda(){
-    unsigned int address = *(unsigned short *)0x40E;
-    address <<= 4;
-    return address;
-}
-
-/**
- * acpi校验和
- */
-static int acpi_checksum(unsigned char *ap, s32_t len){
-    int sum = 0;
-    while (len--){
-        sum += *ap++;
+static void display_e820s(e820map_t *e820s,int size){
+    for(int i=0;i<size;i++){
+        kprint("%d:%d,%d,%d\n",i,e820s[i].saddr,e820s[i].lsize,e820s[i].type);
     }
-    return sum & 0xFF;
-}
-
-/**
- * 
- */
-static mrsdp_t *acpi_rsdp_isok(mrsdp_t *rdp){
-    if (rdp->rp_len == 0 || rdp->rp_revn == 0){
-        return NULL;
-    }
-    if (0 == acpi_checksum((unsigned char *)rdp, (s32_t)rdp->rp_len)){
-        return rdp;
-    }
-
-    return NULL;
-}
-
-/**
- * 
- */
-static mrsdp_t *findacpi_rsdp_core(void *findstart, u32_t findlen){
-    if (NULL == findstart || 1024 > findlen){
-        return NULL;
-    }
-
-    u8_t *tmpdp = (u8_t *)findstart;
-
-    mrsdp_t *retdrp = NULL;
-    for (u64_t i = 0; i <= findlen; i++){
-        if (('R' == tmpdp[i]) && ('S' == tmpdp[i + 1]) && ('D' == tmpdp[i + 2]) && (' ' == tmpdp[i + 3]) &&
-            ('P' == tmpdp[i + 4]) && ('T' == tmpdp[i + 5]) && ('R' == tmpdp[i + 6]) && (' ' == tmpdp[i + 7])){
-            retdrp = acpi_rsdp_isok((mrsdp_t *)(&tmpdp[i]));
-            if (NULL != retdrp){
-                return retdrp;
-            }
-        }
-    }
-    return NULL;
-}
-
-/**
- * 
- */
-PUBLIC mrsdp_t *find_acpi_rsdp(){
-    void *fndp = (void *)acpi_get_bios_ebda();
-    mrsdp_t *rdp = findacpi_rsdp_core(fndp, 1024);
-    if (NULL != rdp){
-        return rdp;
-    }
-    //0E0000h和0FFFFFH
-    fndp = (void *)(0xe0000);
-    rdp = findacpi_rsdp_core(fndp, (0xfffff - 0xe0000));
-    if (NULL != rdp){
-        return rdp;
-    }
-    return NULL;
-}
-
-/**
- * 初始化ACPI
- */
-PUBLIC void init_acpi(machbstart_t *mbsp){
-    mrsdp_t *rdp = NULL;
-    rdp = find_acpi_rsdp();
-    if (NULL == rdp){
-        kerror("Your computer is not support ACPI!!");
-    }
-    m2mcopy(rdp, &mbsp->mb_mrsdp, (sint_t)((sizeof(mrsdp_t))));
-    if (acpi_rsdp_isok(&mbsp->mb_mrsdp) == NULL){
-        kerror("Your computer is not support ACPI!!");
-    }
-    return;
 }
 
 /**
@@ -103,7 +17,6 @@ PUBLIC void init_acpi(machbstart_t *mbsp){
 void init_mem(machbstart_t *mbsp){
     e820map_t *addr;  //e820数组指针
     u32_t len = 0;  //e820数组元素数量
-    mbsp->mb_ebdaphyadr = acpi_get_bios_ebda(); //获取ebda内存地址
     
     mmap(&addr, &len);  //获取内存视图的e820数组
     
@@ -120,7 +33,6 @@ void init_mem(machbstart_t *mbsp){
     mbsp->mb_e820nr = (u64_t)len;                       //记录e820map_t结构体数组元素个数
     mbsp->mb_e820sz = len * (sizeof(e820map_t));        //记录e820map_t结构体数组大小(B)
     mbsp->mb_memsz = get_memsize(addr, len);            //根据e820结构体数组大小计算内存大小
-    init_acpi(mbsp);    //初始化ACPI
     return;
 }
 
@@ -211,6 +123,7 @@ void init_meme820(machbstart_t *mbsp){
     e820map_t *semp = (e820map_t *)((u32_t)(mbsp->mb_e820padr));
     u64_t senr = mbsp->mb_e820nr;
     e820map_t *demp = (e820map_t *)((u32_t)(mbsp->mb_nextwtpadr));
+    
     if (1 > move_krlimg(mbsp, (u64_t)((u32_t)demp), (senr * (sizeof(e820map_t))))){
         kerror("move_krlimg err");
     }
@@ -230,6 +143,7 @@ void mmap(e820map_t **e820s, u32_t *size){
     realadr_call_entry(RLINTNR(0), 0, 0);   //进入实模式调用BIOS中断，获取e820数组，并存入指定地址下
     *size = *((u32_t *)(E80MAP_NR));        //使用指针共享汇编收集的数组大小信息，地址值只是一个无符号数，只有转换为具体类型的指针，才能正确访问和解释该地址下的数据
     *e820s = (e820map_t *)(*((u32_t *)(E80MAP_ADRADR)));    //使用指针，共享汇编收集的数组地址信息
+    display_e820s(*e820s,*size);
     return;
 }
 

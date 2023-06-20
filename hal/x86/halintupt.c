@@ -182,8 +182,7 @@ void hal_do_hwint(uint_t intnumb, void *krnlsframp){
  */
 void hal_fault_allocator(uint_t faultnumb, void *krnlsframp){
     kprint("faultnumb:%x\n", faultnumb);
-    for (;;)
-        ;
+    while(1);
     return;
 }
 

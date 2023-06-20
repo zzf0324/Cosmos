@@ -1,6 +1,7 @@
 ﻿/**
  * hal层中断处理头文件
  */
+
 #ifndef _HALINTUPT_T_H
 #define _HALINTUPT_T_H
 
@@ -12,13 +13,14 @@ typedef struct s_ILNEDSC{
     u32_t ild_devid;
     u32_t ild_physid;
     u32_t ild_clxsubinr;
-}ilnedsc_t;
+}
+;
 
 //中断异常描述表结构
 typedef struct s_INTFLTDSC{
-    spinlock_t  i_lock;
-    u32_t       i_flg;
-    u32_t       i_stus;
+    spinlock_t  i_lock;         //自旋锁
+    u32_t       i_flg;          //标志
+    u32_t       i_stus;         //状态
     uint_t      i_prity;        //中断优先级
     uint_t      i_irqnr;        //中断号
     uint_t      i_deep;         //中断嵌套深度
@@ -40,10 +42,10 @@ typedef struct s_INTFLTDSC{
 typedef struct s_INTSERDSC{
     list_h_t    s_list;         //在中断异常描述符中的链表
     list_h_t    s_indevlst;     //在设备描述描述符中链表
-    u32_t       s_flg;          //
+    u32_t       s_flg;          //标志
     intfltdsc_t* s_intfltp;     //指向中断异常描述符
     void*       s_device;       //指向设备描述符
-    uint_t      s_indx;         //
+    uint_t      s_indx;         //索引
     intflthandle_t s_handle;    //中断处理的回调函数指针
 }intserdsc_t;
 

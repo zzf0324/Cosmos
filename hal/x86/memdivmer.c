@@ -1,6 +1,7 @@
 /**
  * 物理内存分割合并文件
  **/
+
 #include "cosmostypes.h"
 #include "cosmosmctrl.h"
 
@@ -1067,12 +1068,10 @@ void free_one_mchkstuc(mchkstuc_t *mchs){
 	return;
 }
 
-void free_all_mchkstuc()
-{
+void free_all_mchkstuc(){
 	list_h_t *tmlst = NULL;
 	mchkstuc_t *mchs = NULL;
-	list_for_each_head_dell(tmlst, &memmgrob.mo_list)
-	{
+	list_for_each_head_dell(tmlst, &memmgrob.mo_list){
 		mchs = list_entry(tmlst, mchkstuc_t, mc_list);
 		free_one_mchkstuc(mchs);
 	}
@@ -1091,6 +1090,7 @@ void chek_all_one_mchkstuc(mchkstuc_t *mchs){
 	}
 	return;
 }
+
 void chek_all_mchkstuc(){
 	mchkstuc_t *mchs = NULL;
 	list_h_t *tmplst;
@@ -1175,8 +1175,8 @@ void test_onedivmer_all(memarea_t *ma){
 	uint_t pages = 1, retpnr = 0;
 	u64_t stsc = 0, etsc = 0;
 	msadsc_t *retmsa = NULL;
-	//for(;pages<ma->ma_maxpages;pages++)	{
-		for (; pages < ma->ma_maxpages;){
+	for(;pages<ma->ma_maxpages;pages++)	{
+		for (; pages < ma->ma_maxpages;) {
 			stsc = x86_rdtsc();
 			retmsa = mm_division_pages(&memmgrob, pages, &retpnr, ma->ma_type, DMF_RELDIV);
 			etsc = x86_rdtsc();

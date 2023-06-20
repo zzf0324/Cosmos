@@ -14,7 +14,7 @@
 #define RM16_EIP_OFF (ETYBAK_ADR+8)     // 实模式下指令指针在ETYBAK_ADR上的偏移
 #define RM16_ESP_OFF (ETYBAK_ADR+12)    // 实模式下栈指针在ETYBAK_ADR上的偏移
 //skip some bytes
-#define RWHDPACK_ADR (ETYBAK_ADR+32)    // 
+#define RWHDPACK_ADR (ETYBAK_ADR+32)    // 保存磁盘信息地址
 #define E80MAP_NR (ETYBAK_ADR+64)       // 保存e820数组元素number的地址
 #define E80MAP_ADRADR (ETYBAK_ADR+68)   // 保存e820数组地址的指针地址，然后当将E80MAP_ADRADR赋值给指针时，这个指针就是结构体数组的指针，对应数组的寻址
 #define E80MAP_ADR (0x5000)             // e820数组开始地址
