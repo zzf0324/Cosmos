@@ -9,11 +9,11 @@
  * 虚拟地址转换为物理地址
  */
 adr_t virtadr_to_phyadr(adr_t kviradr){
-    if (kviradr < KRNL_MAP_VIRTADDRESS_START || kviradr > KRNL_MAP_VIRTADDRESS_END){
-        system_error("virtadr_to_phyadr err\n");
+    if (kviradr < KRNL_MAP_VIRTADDRESS_START || kviradr > KRNL_MAP_VIRTADDRESS_END){    //判断输入的虚拟地址是否在内核虚拟地址空间中
+        system_error("virtual address convert to physical address error\n");
         return KRNL_ADDR_ERROR;
     }
-    return kviradr - KRNL_MAP_VIRTADDRESS_START;
+    return kviradr - KRNL_MAP_VIRTADDRESS_START;    //求出虚拟地址相对于起始地址的偏移量就是映射后的物理地址
 }
 
 /**
@@ -40,10 +40,15 @@ void machbstart_t_init(machbstart_t *initp){
  * 把原先通过二级引导器获得的机器信息结构体machbstart_t,复制到一个新地址下
  */
 void init_machbstart(){
-    machbstart_t *kmbsp = &kmachbsp;
-    machbstart_t *smbsp = MBSPADR;  //物理地址1MB处宏MBSPADR定义在ldrtype.h中
-    machbstart_t_init(kmbsp);       //初始化用于存储machbstart_t的结构体变量
-    //复制，要把地址转换为虚拟地址，因为这个时候已经进入长模式+页表了
+    machbstart_t *kmbsp = &kmachbsp;    //全局机器信息结构体
+    machbstart_t *smbsp = MBSPADR;      //二级引导器对应的物理地址1MB
+    machbstart_t_init(kmbsp);           //初始化用于存储machbstart_t的结构体变量
+    /**
+     * 复制
+     * 要把地址转换为虚拟地址，因为这个时候已经进入长模式+页表了
+     * CPU执行程序时会使用虚拟地址，然后把这个虚拟地址转换为物理地址1MB
+     * 首先原来的machbstart_t结构体是存放在物理地址1MB处的，如果memcopy将1MB当做源地址，这地址会被当做虚拟地址进行映射，虚拟地址1MB映射后的地址就不一定对应物理地址1MB了
+     **/
     memcopy((void *)phyadr_to_viradr((adr_t)smbsp), (void *)kmbsp, sizeof(machbstart_t));
     return;
 }
@@ -52,13 +57,13 @@ void init_machbstart(){
  * 平台初始化函数
  */
 void init_halplatform(){
-    //复制机器信息结构
+    //复制机器信息结构，把原先的结构体内存赋值到全局变量的内存地址下(通过内存拷贝给一个变变量直接赋值)
     init_machbstart();
 
     //初始化图形显示驱动
     init_bdvideo();
-    hint("图形驱动初始化完毕\n");    
 
+    hint("图形驱动初始化完毕\n");    
     return;
 }
 
@@ -75,7 +80,7 @@ int strcmpl(const char *a, const char *b){
 }
 
 /**
- * 获取文件信息
+ * 获取映像文件中的文件信息
  */
 fhdsc_t *get_fileinfo(char_t *fname, machbstart_t *mbsp){
     mlosrddsc_t *mrddadrs = (mlosrddsc_t *)phyadr_to_viradr((adr_t)(mbsp->mb_imgpadr + MLOSDSC_OFF));
@@ -103,7 +108,7 @@ ok_l:
 }
 
 /**
- * 
+ * 获取映像中某文件的地址和大小
  */
 void get_file_rvadrandsz(char_t *fname, machbstart_t *mbsp, u64_t *retadr, u64_t *retsz){
     u64_t padr = 0, fsz = 0;
@@ -194,6 +199,7 @@ void move_img2maxpadr(machbstart_t *mbsp){
     mbsp->mb_imgpadr = imgtoadr;
     return;
 }
+
 
 /**
  * 函数:move_lmosimg2maxpadr中检查相应的地址有问题

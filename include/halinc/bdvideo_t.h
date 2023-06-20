@@ -5,7 +5,7 @@
 #ifndef _BDVIDEO_T_H
 #define _BDVIDEO_T_H
 
-
+//vbe模式信息
 typedef struct s_VBEINFO{
         char vbesignature[4];
         u16_t vbeversion;
@@ -21,6 +21,7 @@ typedef struct s_VBEINFO{
         u8_t oemdata[256];
 }__attribute__((packed)) vbeinfo_t;
 
+//vbe模式详细信息
 typedef struct s_VBEOMINFO{
     u16_t ModeAttributes;
     u8_t  WinAAttributes;
@@ -69,13 +70,15 @@ typedef struct s_VBEOMINFO{
     u8_t  Reserved3[189];
 }__attribute__((packed)) vbeominfo_t;
 
-
-#define BGRA(r,g,b) ((0|(r<<16)|(g<<8)|b))      //将RGB参数合成一个int型整数
+#define ARGB(a,r,g,b) (((a<<24)|(r<<16)|(g<<8)|b))    //支持透明模式
+#define BGRA(r,g,b) ((0|(r<<16)|(g<<8)|b))          //将RGB参数合成一个int型整数
 typedef u32_t pixl_t;                           //定义像素类型
 
+//图形显卡模式
 #define VBEMODE 1   //VBE模式
 #define GPUMODE 2   //GPU模式
 #define BGAMODE 3   //BGA模式
+//二级引导器中旧的图形结构体
 typedef struct s_GRAPH{
     u32_t gh_mode;      
     u32_t gh_x;         
@@ -167,8 +170,6 @@ typedef struct s_FNTDATA{
     u8_t fntchmap[MAX_CHARBITBY];
 }__attribute__((packed)) fntdata_t;
 
-//typedef drvstus_t (*dftghp_ops_t)(void* ghpdevp,void* inp,void* outp,uint_t x,uint_t y,uint_t iocode);
-
 /**
  * 图形驱动操作函数指针结构体
  * 把实际的图形驱动函数写入这个结构体中(如*dgo_read,这里是取出dgo_read函数的地址)，这样通过这个结构体就可以调用相应的函数了。
@@ -197,10 +198,7 @@ typedef struct s_DFTGHOPS{      //dft graph options
     sint_t (*dgo_get_xyoffset)(void* ghpdev,uint_t* rxoff,uint_t* ryoff);
 }dftghops_t;
 
-
-/**
- * 图形数据结构
- */
+//新的图形数据结构
 typedef struct s_DFTGRAPH{
     u64_t gh_mode;          //图形模式
     u64_t gh_x;             //水平像素点
@@ -226,7 +224,7 @@ typedef struct s_DFTGRAPH{
     u64_t gh_flush;         //
     u64_t gh_framnr;        //
     u64_t gh_fshdata;       //刷新相关的
-    dftghops_t gh_opfun;    //图形驱动操作函数指针结构体
+    dftghops_t gh_opfun;    //操作函数指针结构体
 }dftgraph_t;
 
 #define VBE_DISPI_IOPORT_INDEX (0x01CE)

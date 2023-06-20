@@ -33,24 +33,24 @@
 #define PLFM_ADRSPCE_NR 29
 
 #define INTSRC_MAX 32
+/*======================================================================================================================================*/
+#define KRNL_VIRTUAL_ADDRESS_START 0xffff800000000000           //虚拟地址空间起始地址
+#define KRNL_VIRTUAL_ADDRESS_END 0xffffffffffffffff             //虚拟地址空间结束地址
+#define KRNL_MAP_VIRTADDRESS_SIZE 0x400000000                   //虚拟地址空间大小16GB
 
-#define KRNL_MAP_VIRTADDRESS_SIZE 0x400000000
-#define KRNL_VIRTUAL_ADDRESS_START 0xffff800000000000
-#define KRNL_VIRTUAL_ADDRESS_END 0xffffffffffffffff
-#define USER_VIRTUAL_ADDRESS_START 0
-#define USER_VIRTUAL_ADDRESS_END 0x00007fffffffffff
-#define KRNL_MAP_PHYADDRESS_START 0
-#define KRNL_MAP_PHYADDRESS_END 0x400000000
-#define KRNL_MAP_PHYADDRESS_SIZE 0x400000000
-#define KRNL_MAP_VIRTADDRESS_START KRNL_VIRTUAL_ADDRESS_START
-#define KRNL_MAP_VIRTADDRESS_END (KRNL_MAP_VIRTADDRESS_START+KRNL_MAP_VIRTADDRESS_SIZE)
-#define KRNL_ADDR_ERROR 0xf800000000000
+#define USER_VIRTUAL_ADDRESS_START 0                            //用户虚拟地址空间起始地址
+#define USER_VIRTUAL_ADDRESS_END 0x00007fffffffffff             //用户虚拟地址空间结束地址
 
+#define KRNL_MAP_PHYADDRESS_START 0                             //物理地址空间起始地址
+#define KRNL_MAP_PHYADDRESS_END 0x400000000                     //物理地址空间结束地址
+#define KRNL_MAP_PHYADDRESS_SIZE 0x400000000                    //物理地址空间大小16GB
 
-#define MBS_MIGC (u64_t)((((u64_t)'L')<<56)|(((u64_t)'M')<<48)|(((u64_t)'O')<<40)|(((u64_t)'S')<<32)|(((u64_t)'M')<<24)|(((u64_t)'B')<<16)|(((u64_t)'S')<<8)|((u64_t)'P'))
+#define KRNL_MAP_VIRTADDRESS_START KRNL_VIRTUAL_ADDRESS_START   //内核虚拟地址空间映射用的起始地址
+#define KRNL_MAP_VIRTADDRESS_END (KRNL_MAP_VIRTADDRESS_START+KRNL_MAP_VIRTADDRESS_SIZE)     //内核虚拟地址空间映射用的结束地址
+#define KRNL_ADDR_ERROR 0xf800000000000                         //表示一个出错地址，当地址映射出错时返回该地址
 
-typedef struct s_MRSDP
-{
+//
+typedef struct s_MRSDP{
     u64_t rp_sign;
     u8_t rp_chksum;
     u8_t rp_oemid[6];
@@ -63,12 +63,16 @@ typedef struct s_MRSDP
 }__attribute__((packed)) mrsdp_t;
 
 
+/*======================================================================================================================================*/
+#define MBSPADR ((machbstart_t*)(0x100000))     //机器信息结构体地址:1MB处
+//机器信息结构体魔数
+#define MBS_MIGC (u64_t)((((u64_t)'L')<<56)|(((u64_t)'M')<<48)|(((u64_t)'O')<<40)|(((u64_t)'S')<<32)|(((u64_t)'M')<<24)|(((u64_t)'B')<<16)|(((u64_t)'S')<<8)|((u64_t)'P'))
 //机器信息结构数组
 typedef struct s_MACHBSTART{
-    u64_t   mb_migc;          //LMOSMBSP//0
-    u64_t   mb_chksum;//8
-    u64_t   mb_krlinitstack;//16
-    u64_t   mb_krlitstacksz;//24
+    u64_t   mb_migc;            //LMOSMBSP//0
+    u64_t   mb_chksum;          //8
+    u64_t   mb_krlinitstack;    //16
+    u64_t   mb_krlitstacksz;    //24
     u64_t   mb_imgpadr;
     u64_t   mb_imgsz;
     u64_t   mb_krlimgpadr;
@@ -110,9 +114,6 @@ typedef struct s_MACHBSTART{
 }__attribute__((packed)) machbstart_t;
 
 
-#define MBSPADR ((machbstart_t*)(0x100000))
-
-
 #define BFH_RW_R 1
 #define BFH_RW_W 2
 
@@ -122,23 +123,26 @@ typedef struct s_MACHBSTART{
 #define BFH_RWONE_ER 2
 #define BFH_RWALL_OK 3
 
-#define FHDSC_NMAX 192
-#define FHDSC_SZMAX 256
-#define MDC_ENDGIC 0xaaffaaffaaffaaff
-#define MDC_RVGIC 0xffaaffaaffaaffaa
-
-#define MLOSDSC_OFF (0x1000)
-#define RAM_USABLE 1
-#define RAM_RESERV 2
-#define RAM_ACPIREC 3
-#define RAM_ACPINVS 4
-#define RAM_AREACON 5
+/*=======================================================================================================================================*/
+#define RAM_USABLE 1        //可用内存
+#define RAM_RESERV 2        //保留内存
+#define RAM_ACPIREC 3       //ACPI data
+#define RAM_ACPINVS 4       //ACPI NVS
+#define RAM_AREACON 5       //不可用内存
 //内存视图的e820数组
 typedef struct s_e820{
-    u64_t saddr;    /* 内存段起始地址 */
-    u64_t lsize;    /* 内存段大小 */
-    u32_t type;    /* 内存段类型 */
+    u64_t saddr;        //内存段起始地址
+    u64_t lsize;        //内存段大小
+    u32_t type;         //内存段类型
 }__attribute__((packed)) e820map_t;
+
+
+/*========================================================================================================================================*/
+#define FHDSC_NMAX 192                  //文件头描述符中文件名最大长度
+#define FHDSC_SZMAX 256                 //文件头描述符大小256B=64B+192B
+#define MDC_ENDGIC 0xaaffaaffaaffaaff   //映像文件结束标志:mlosrddsc_t.mdc_endgic
+#define MDC_RVGIC 0xffaaffaaffaaffaa    //映像文件版本:mlosrddsc_t.mdc_rv
+#define MLOSDSC_OFF (0x1000)            //eki中文件描述符偏移
 
 //文件句柄
 typedef struct s_fhdsc{
@@ -160,19 +164,24 @@ typedef struct s_mlosrddsc{
     u64_t mdc_sfsoff;
     u64_t mdc_sfeoff;
     u64_t mdc_sfrlsz;
+
     u64_t mdc_ldrbk_s;
     u64_t mdc_ldrbk_e;
     u64_t mdc_ldrbk_rsz;
     u64_t mdc_ldrbk_sum;
+
     u64_t mdc_fhdbk_s;
     u64_t mdc_fhdbk_e;
     u64_t mdc_fhdbk_rsz;
     u64_t mdc_fhdbk_sum;
+    
     u64_t mdc_filbk_s;
     u64_t mdc_filbk_e;
     u64_t mdc_filbk_rsz;
     u64_t mdc_filbk_sum;
+    
     u64_t mdc_ldrcodenr;
+    
     u64_t mdc_fhdnr;
     u64_t mdc_filnr;
     u64_t mdc_endgic;

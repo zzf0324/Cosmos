@@ -9,7 +9,9 @@
  * 内核初始化总控函数
  */
 void hal_start(){
-    init_hal();     //初始化hal层
-    init_krl();     //初始化内核层
+    //初始化hal层
+    init_hal();
+    //初始化内核层
+    init_krl();
     return;
 }

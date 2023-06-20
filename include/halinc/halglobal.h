@@ -69,14 +69,14 @@ void	asm_ret_from_user_mode();
 
 
 HAL_DEFGLOB_VARIABLE(descriptor_t,x64_gdt)[CPUCORE_MAX][GDTMAX];
-HAL_DEFGLOB_VARIABLE(gate_t,x64_idt)[IDTMAX];           //定义中断表，IDTMAX=256，X86平台最多支持256个中断
+HAL_DEFGLOB_VARIABLE(gate_t,x64_idt)[IDTMAX];               //定义中断表，IDTMAX=256，X86平台最多支持256个中断
 HAL_DEFGLOB_VARIABLE(x64tss_t,x64tss)[CPUCORE_MAX]; 
 HAL_DEFGLOB_VARIABLE(igdtr_t,x64_igdt_reg)[CPUCORE_MAX];
 HAL_DEFGLOB_VARIABLE(iidtr_t,x64_iidt_reg);
-HAL_DEFGLOB_VARIABLE(machbstart_t,kmachbsp);            //声明全局机器信息结构体
-HAL_DEFGLOB_VARIABLE(dftgraph_t,kdftgh);                //声明全局图形信息结构体
+HAL_DEFGLOB_VARIABLE(machbstart_t,kmachbsp);                //声明全局机器信息结构体
+HAL_DEFGLOB_VARIABLE(dftgraph_t,kdftgh);                    //声明全局图形信息结构体
 HAL_DEFGLOB_VARIABLE(memmgrob_t,memmgrob);
-HAL_DEFGLOB_VARIABLE(intfltdsc_t,machintflt)[IDTMAX];   //中断异常描述符表；256个
+HAL_DEFGLOB_VARIABLE(intfltdsc_t,machintflt)[IDTMAX];       //中断异常描述符表；256个
 #endif
 
 /**

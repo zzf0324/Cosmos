@@ -5,15 +5,6 @@
 #ifndef _LDRTYPE_H
 #define _LDRTYPE_H
 
-//未使用
-#define BFH_RW_R 1
-#define BFH_RW_W 2
-//未使用
-#define BFH_BUF_SZ 0x1000
-#define BFH_ONERW_SZ 0x1000
-#define BFH_RWONE_OK 1
-#define BFH_RWONE_ER 2
-#define BFH_RWALL_OK 3
 
 /*========================================================================================================================*/
 #define REALDRV_PHYADR 0x1000           //实模式模块initldrsve.bin地址
@@ -53,7 +44,7 @@ typedef struct s_fhdsc{
 
 //映像文件头描述符，用与内核映像文件eki中的各个文件
 typedef struct s_mlosrddsc{
-    u64_t mdc_mgic;         //映像文件标志
+    u64_t mdc_mgic;         //映像文件魔数
     u64_t mdc_sfsum;        //未使用
     u64_t mdc_sfsoff;       //未使用
     u64_t mdc_sfeoff;       //未使用
@@ -262,26 +253,26 @@ typedef u32_t pixl_t;   //使用一个32位的数据来表示4字节的像素
 //图形信息结构体
 typedef struct s_GRAPH{
     u32_t gh_mode;          //图形模式
-    u32_t gh_x;
-    u32_t gh_y;
-    u32_t gh_framphyadr;
-    u32_t gh_onepixbits;
-    u32_t gh_vbemodenr;
-    u32_t gh_vifphyadr;
-    u32_t gh_vmifphyadr;
-    u32_t gh_bank;
-    u32_t gh_curdipbnk;
-    u32_t gh_nextbnk;
-    u32_t gh_banksz;
-    u32_t gh_logophyadrs;
-    u32_t gh_logophyadre;
-    u32_t gh_fontadr;
-    u32_t gh_ftsectadr;
-    u32_t gh_ftsectnr;
-    u32_t gh_fnthight;
-    u32_t gh_nxtcharsx;
-    u32_t gh_nxtcharsy;
-    u32_t gh_linesz;
+    u32_t gh_x;             //水平像素点
+    u32_t gh_y;             //垂直像素点
+    u32_t gh_framphyadr;    //显存物理地址
+    u32_t gh_onepixbits;    //一个像素字占的位数
+    u32_t gh_vbemodenr;     //vbe模式号
+    u32_t gh_vifphyadr;     //
+    u32_t gh_vmifphyadr;    //
+    u32_t gh_bank;          //显存bank数
+    u32_t gh_curdipbnk;     //当前bank
+    u32_t gh_nextbnk;       //下一个bank
+    u32_t gh_banksz;        //bank大小
+    u32_t gh_logophyadrs;   //
+    u32_t gh_logophyadre;   //
+    u32_t gh_fontadr;       //字库大小
+    u32_t gh_ftsectadr;     //
+    u32_t gh_ftsectnr;      //
+    u32_t gh_fnthight;      //字体高度
+    u32_t gh_nxtcharsx;     //下一字符显示的x坐标
+    u32_t gh_nxtcharsy;     //下一字符显示的y坐标
+    u32_t gh_linesz;        //字符行高
     vbeinfo_t gh_vbeinfo;   //VBE基本信息
     vbeominfo_t gh_vminfo;  //VBE详细信息
 }__attribute__((packed)) graph_t;

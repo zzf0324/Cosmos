@@ -1,6 +1,8 @@
 /**
  * 引导调式屏幕上显示输出文件bdvideo.c
  */
+
+
 #include "cosmostypes.h"
 #include "cosmosmctrl.h"
 
@@ -148,20 +150,25 @@ void hal_logo(){
 }
 
 /**
- * 
+ * 图形总控初始化函数
  */
 PUBLIC LKINIT void init_bdvideo(){
-    dftgraph_t *kghp = &kdftgh;     //图形数据结构体变量
+    //图形数据结构体变量
+    dftgraph_t *kghp = &kdftgh;
+
     //初始化图形数据结构，里面放有图形模式，分辨率，图形驱动函数指针
     init_dftgraph();
-    //初始化bga图形显卡的函数指针
+    
+    //初始化bga或vbe图形显卡的函数指针，具体用哪个要看显卡模式
     init_bga();
-    //初始化vbe图形显卡的函数指针
     init_vbe();
+    
     //用黑色清空屏幕
     fill_graph(kghp, BGRA(21, 21, 29));
+    
     //显示背景图片
     set_charsdxwflush(0, 0);
+    
     hal_logo();
     return;
 }
@@ -193,7 +200,7 @@ void init_bga(){
 }
 
 /**
- * 初始化图形显卡的函数指针
+ * 初始化vbe图形显卡的函数指针
  */
 void init_vbe(){
     dftgraph_t *kghp = &kdftgh;
@@ -234,7 +241,7 @@ void fill_graph(dftgraph_t *kghp, pixl_t pix){
 
 
 /**
- * 
+ * 在屏幕指定位置(x,y)处写入一个像素信息
  */
 void write_pixcolor(dftgraph_t *kghp, u32_t x, u32_t y, pixl_t pix){
     kghp->gh_opfun.dgo_writepix(kghp, pix, x, y);
