@@ -5,7 +5,7 @@
 #include "cmctl.h"
 
 /**
- * 
+ * 初始化图形相关的数据结构和设备。
  */
 void init_graph(machbstart_t* mbsp){
     //初始化图形数据结构
@@ -23,7 +23,7 @@ void init_graph(machbstart_t* mbsp){
 }
 
 /**
- * 初始化图形结构体
+ * 初始化图形结构体，该函数将图形数据结构清零。
  */
 void graph_t_init(graph_t* initp){
     memset(initp,0,sizeof(graph_t));
@@ -31,18 +31,17 @@ void graph_t_init(graph_t* initp){
 }
 
 /**
- * 
+ * 初始化内核初始化帧缓冲区，将指定内存区域清零。
  */
 void init_kinitfvram(machbstart_t* mbsp){
     mbsp->mb_fvrmphyadr=KINITFRVM_PHYADR;
     mbsp->mb_fvrmsz=KINITFRVM_SZ;
     memset((void*)KINITFRVM_PHYADR,0,KINITFRVM_SZ);
-
     return;
 }
 
 /**
- * 
+ * 将虚拟地址转换为线性地址。将虚拟地址的段偏移和段基址组合成线性地址。
  */
 u32_t vfartolineadr(u32_t vfar){
     u32_t tmps=0,sec=0,off=0;
@@ -53,7 +52,7 @@ u32_t vfartolineadr(u32_t vfar){
 }
 
 /**
- * 
+ *  获取VBE（Video BIOS Extensions）模式信息。通过调用BIOS中断获取VBE模式的信息，并将其存储在指定的数据结构中。
  */
 void get_vbemode(machbstart_t* mbsp){
     realadr_call_entry(RLINTNR(2),0,0);
@@ -100,7 +99,7 @@ void get_vbemode(machbstart_t* mbsp){
 }
 
 /**
- * 
+ * 向BGA（Bochs Graphics Adapter）设备的寄存器写入数据。
  */
 void bga_write_reg(u16_t index, u16_t data){
     out_u16(VBE_DISPI_IOPORT_INDEX, index);
@@ -109,7 +108,7 @@ void bga_write_reg(u16_t index, u16_t data){
 }
 
 /**
- * 
+ * 从BGA设备的寄存器读取数据。
  */
 u16_t bga_read_reg(u16_t index){
     out_u16(VBE_DISPI_IOPORT_INDEX, index);
@@ -117,7 +116,7 @@ u16_t bga_read_reg(u16_t index){
 }
 
 /**
- * 
+ * 获取BGA设备的标识符。通过读取BGA设备的ID寄存器来确定设备的存在和类型。
  */
 u32_t get_bgadevice(){
     u16_t bgaid=bga_read_reg(VBE_DISPI_INDEX_ID);
@@ -132,7 +131,7 @@ u32_t get_bgadevice(){
 }
 
 /**
- * 
+ * 检查支持的BGA设备的最高版本。尝试逐个检查不同版本的BGA设备，并返回支持的最高版本。
  */
 u32_t chk_bgamaxver(){
     bga_write_reg(VBE_DISPI_INDEX_ID,BGA_DEV_ID5);
@@ -164,7 +163,7 @@ u32_t chk_bgamaxver(){
 
 
 /**
- * 
+ * 初始化BGA设备。配置BGA设备的分辨率、像素位深度等参数，并设置相关的图形数据结构。
  */
 void init_bgadevice(machbstart_t* mbsp){
     u32_t retdevid=get_bgadevice();
@@ -195,7 +194,7 @@ void init_bgadevice(machbstart_t* mbsp){
 
 
 /**
- * 
+ * 获取VBE模式的详细信息。通过调用BIOS中断获取指定VBE模式的详细信息，并将其存储在指定的数据结构中。
  */
 void get_vbemodeinfo(machbstart_t* mbsp){
     realadr_call_entry(RLINTNR(3),0,0);		//调用BIOS中断，获取硬件的VBE信息
@@ -222,7 +221,7 @@ void get_vbemodeinfo(machbstart_t* mbsp){
 }
 
 /**
- * 调用BIOS中断，设置显卡为VBE模式
+ * 调用BIOS中断，将显卡设置为VBE模式。该函数用于将当前的VBE模式设置为显卡的活动模式。
  */
 void set_vbemodeinfo(){
     realadr_call_entry(RLINTNR(4),0,0);

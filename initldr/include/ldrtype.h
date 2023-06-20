@@ -15,54 +15,22 @@
 #define BFH_RWONE_ER 2
 #define BFH_RWALL_OK 3
 
+/*========================================================================================================================*/
 #define REALDRV_PHYADR 0x1000           //实模式模块initldrsve.bin地址
 #define ILDRKRL_PHYADR 0x200000         //二级引导器initldrkrl.bin地址
+#define IMGKRNL_PHYADR 0x2000000        //内核Cosmos.bin地址
 #define IMGSHEL_PHYADR 0x30000          //
+
 #define IKSTACK_PHYADR (0x90000-0x10)   //内核栈基地址
 #define IKSTACK_SIZE 0x1000             //内核栈大小:4KB
-#define IMGFILE_PHYADR 0x4000000        //映像文件Cosmos.eki基地址
-#define IMGKRNL_PHYADR 0x2000000        //内核Cosmos.bin地址
-#define KINITPAGE_PHYADR 0x1000000      //页表首地址:16MB处
-#define KINITFRVM_PHYADR 0x800000       //
-#define KINITFRVM_SZ 0x400000           //
 
+#define KINITFRVM_PHYADR 0x800000       //内核初始化帧缓冲区地址
+#define KINITFRVM_SZ 0x400000           //内核初始化帧缓冲区偏移
+
+#define IMGFILE_PHYADR 0x4000000        //映像文件Cosmos.eki基地址
 #define LDRFILEADR IMGFILE_PHYADR       //映像文件地址
 #define MLOSDSC_OFF (0x1000)            //mlosrddsc_t的偏移地址4KB，OFF是offset    
 #define MRDDSC_ADR (mlosrddsc_t*)(LDRFILEADR+0x1000)    //映像文件头描述符地址(映像文件地址偏移4KB=映像文件头描述符的地址)
-
-
-/*==========================================================MMU页表相关的数据==================================================*/
-#define KRNL_VIRTUAL_ADDRESS_START 0xffff800000000000   //内核虚拟地址空间起始地址
-//顶级页目录标志字段
-#define KPML4_P (1<<0)          //页面存在位
-#define KPML4_RW (1<<1)         //页面读写位
-#define KPML4_US (1<<2)         //用户/超级管理者页
-#define KPML4_PWT (1<<3)        //写回，写直达
-#define KPML4_PCD (1<<4)        //是否开启页级Cache
-#define KPML4_A (1<<5)          //访问位，由MMU硬件设置
-//页目录指针标志字段
-#define KPDPTE_P (1<<0)         //页面存在位
-#define KPDPTE_RW (1<<1)        //页面读写位
-#define KPDPTE_US (1<<2)        //用户/超级管理者页
-#define KPDPTE_PWT (1<<3)       //写回，写直达
-#define KPDPTE_PCD (1<<4)       //是否开启页级Cache
-#define KPDPTE_A (1<<5)         //访问位，由MMU硬件设置
-//页目录项字段
-#define KPDE_P (1<<0)           //页面存在位
-#define KPDE_RW (1<<1)          //页面读写位
-#define KPDE_US (1<<2)          //用户/超级管理者页
-#define KPDE_PWT (1<<3)         //写回，写直达
-#define KPDE_PCD (1<<4)         //是否开启页级Cache
-#define KPDE_A (1<<5)           //访问位，由MMU硬件设置
-#define KPDE_D (1<<6)           //页面脏位，页面写入数据时由MMU设置
-#define KPDE_PS (1<<7)          //2MB分页下，PS必须为1
-#define KPDE_G (1<<8)           //全局标志位
-#define KPDE_PAT (1<<12)        //页面属性表
-
-#define KPML4_SHIFT 39          //提取一级页目录索引右移位数
-#define KPDPTTE_SHIFT 30        //提取二级页目录索引右移位数
-#define KPDP_SHIFT 21           //提取三级页目录索引右移位数
-#define PGENTY_SIZE 512         //页目录中页的个数2MB分页的话，4KB页目录可以记录512个页目录项
 
 
 /*===========================================================eki映像相关的结构==============================================*/
@@ -115,11 +83,47 @@ typedef struct s_mlosrddsc{
 }mlosrddsc_t;
 
 
+/*==========================================================MMU页表相关的数据==================================================*/
+#define KINITPAGE_PHYADR 0x1000000      //页表首地址:16MB处
+#define KRNL_VIRTUAL_ADDRESS_START 0xffff800000000000   //内核虚拟地址空间起始地址
+//顶级页目录标志字段
+#define KPML4_P (1<<0)          //页面存在位
+#define KPML4_RW (1<<1)         //页面读写位
+#define KPML4_US (1<<2)         //用户/超级管理者页
+#define KPML4_PWT (1<<3)        //写回，写直达
+#define KPML4_PCD (1<<4)        //是否开启页级Cache
+#define KPML4_A (1<<5)          //访问位，由MMU硬件设置
+//页目录指针标志字段
+#define KPDPTE_P (1<<0)         //页面存在位
+#define KPDPTE_RW (1<<1)        //页面读写位
+#define KPDPTE_US (1<<2)        //用户/超级管理者页
+#define KPDPTE_PWT (1<<3)       //写回，写直达
+#define KPDPTE_PCD (1<<4)       //是否开启页级Cache
+#define KPDPTE_A (1<<5)         //访问位，由MMU硬件设置
+//页目录项字段
+#define KPDE_P (1<<0)           //页面存在位
+#define KPDE_RW (1<<1)          //页面读写位
+#define KPDE_US (1<<2)          //用户/超级管理者页
+#define KPDE_PWT (1<<3)         //写回，写直达
+#define KPDE_PCD (1<<4)         //是否开启页级Cache
+#define KPDE_A (1<<5)           //访问位，由MMU硬件设置
+#define KPDE_D (1<<6)           //页面脏位，页面写入数据时由MMU设置
+#define KPDE_PS (1<<7)          //2MB分页下，PS必须为1
+#define KPDE_G (1<<8)           //全局标志位
+#define KPDE_PAT (1<<12)        //页面属性表
+
+#define KPML4_SHIFT 39          //提取一级页目录索引右移位数
+#define KPDPTTE_SHIFT 30        //提取二级页目录索引右移位数
+#define KPDP_SHIFT 21           //提取三级页目录索引右移位数
+#define PGENTY_SIZE 512         //页目录中页的个数2MB分页的话，4KB页目录可以记录512个页目录项
+
+
 /*============================================================BIOS中断=========================================================*/
 //实模式调用BIOS中断
 #define RLINTNR(x) (x*2)    //用于调用realadr_call_entry时传入参数
 //BIOS中断调用入口
-void REGCALL realadr_call_entry(u16_t callint,u16_t val1,u16_t val2);
+void __attribute__((regparm(3))) realadr_call_entry(u16_t callint,u16_t val1,u16_t val2);   //__attribute__((regparm(3)))指定了函数的前三个参数使用寄存器传值
+
 
 /*===========================================================E820===============================================================*/
 //内存视图类型
@@ -199,17 +203,17 @@ typedef struct s_VBEINFO{
 
 //VBE的详细信息
 typedef struct s_VBEOMINFO{
-    u16_t ModeAttributes;       //显示模式的属性
-    u8_t  WinAAttributes;       //Window A的属性
-    u8_t  WinBAttributes;       //Window B的属性
-    u16_t WinGranularity;       //Window的粒度
-    u16_t WinSize;              //Window的大小
-    u16_t WinASegment;          //Window A的段地址
-    u16_t WinBSegment;          //Window B的段地址
-    u32_t WinFuncPtr;           //Window函数指针
-    u16_t BytesPerScanLine;     //每行的字节数
-    u16_t XResolution;          //水平分辨率
-    u16_t YResolution;          //垂直分辨率
+    u16_t ModeAttributes;           //显示模式的属性
+    u8_t  WinAAttributes;           //Window A的属性
+    u8_t  WinBAttributes;           //Window B的属性
+    u16_t WinGranularity;           //Window的粒度
+    u16_t WinSize;                  //Window的大小
+    u16_t WinASegment;              //Window A的段地址
+    u16_t WinBSegment;              //Window B的段地址
+    u32_t WinFuncPtr;               //Window函数指针
+    u16_t BytesPerScanLine;         //每行的字节数
+    u16_t XResolution;              //水平分辨率
+    u16_t YResolution;              //垂直分辨率
     u8_t  XCharSize;
     u8_t  YCharSize;
     u8_t  NumberOfPlanes;
