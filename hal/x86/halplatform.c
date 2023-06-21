@@ -49,7 +49,7 @@ void init_machbstart(){
      * CPU执行程序时会使用虚拟地址，然后把这个虚拟地址转换为物理地址1MB
      * 首先原来的machbstart_t结构体是存放在物理地址1MB处的，如果memcopy将1MB当做源地址，这地址会被当做虚拟地址进行映射，虚拟地址1MB映射后的地址就不一定对应物理地址1MB了
      **/
-    memcopy((void *)phyadr_to_viradr((adr_t)smbsp), (void *)kmbsp, sizeof(machbstart_t));
+    memcopy((void *)phyadr_to_viradr((adr_t)smbsp), (void *)kmbsp, sizeof(machbstart_t));   //由于用到了memcopy因此要保证二级引导器和这里的machbstart_t结构体是完全一样的
     return;
 }
 
@@ -130,7 +130,7 @@ void get_file_rvadrandsz(char_t *fname, machbstart_t *mbsp, u64_t *retadr, u64_t
 }
 
 /**
- * 
+ * 待定
  */
 e820map_t *get_maxmappadr_e820map(machbstart_t *mbsp, u64_t mappadr){
     if (NULL == mbsp){
@@ -152,7 +152,7 @@ e820map_t *get_maxmappadr_e820map(machbstart_t *mbsp, u64_t mappadr){
 }
 
 /**
- * 
+ * 待定
  */
 e820map_t *ret_kmaxmpadrcmpsz_e820map(machbstart_t *mbsp, u64_t mappadr, u64_t cpsz){
     if (NULL == mbsp){
@@ -177,7 +177,7 @@ e820map_t *ret_kmaxmpadrcmpsz_e820map(machbstart_t *mbsp, u64_t mappadr, u64_t c
 }
 
 /**
- * 
+ * 待定
  */
 void move_img2maxpadr(machbstart_t *mbsp){
     u64_t kmapadrend = mbsp->mb_kpmapphymemsz;
@@ -217,7 +217,7 @@ int adrzone_is_ok(u64_t sadr, u64_t slen, u64_t kadr, u64_t klen){
 
 
 /**
- * 
+ * 待定
  */
 int initchkadr_is_ok(machbstart_t *mbsp, u64_t chkadr, u64_t cksz){
     //u64_t len=chkadr+cksz;

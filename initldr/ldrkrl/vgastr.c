@@ -32,56 +32,50 @@ static void write_str(char_t *str,cursor_t* cursor){
     uint_t index = cursor->x+cursor->y*80;  		//字符位置
     char_t *addr = (char_t *)(cursor->vmem_s+index*2);    //实际显存中物理偏移
     while(*str) {
-	   if(*str=='\n') {  //skip lf symbol
-            cursor->y++;
-            cursor->x = 0;
-            if (cursor->y > 24) {
-                cursor->y--;
-                scroll_screen();    //滚动屏幕
-            }
-        }else {  //plain symbol
-            cursor->x++;
-            if (cursor->x > 80) {   //x>80*2-1,重起一行
-                cursor->x = 0;
+        switch(*str){
+            case '\n':  //换行
                 cursor->y++;
-                if (cursor->y > 24) { //超过最后一行，清屏，从头显示
+                cursor->x = 0;
+                if (cursor->y > 24) {
                     cursor->y--;
-                    scroll_screen();
+                    scroll_screen();    //滚动屏幕
                 }
-            }
-            *addr = *str;	//将字符填入ASCII位置
+                break;
+            case '\r':  //回车
+                cursor->x=0;    //光标回到行首
+                break;
+            case '\t':  //制表符
+                cursor->x = ALIGN(cursor->x+1,8)-1; //制表符按照4倍数对齐
+                if(cursor->x> 79){
+                    cursor->y++; //另起一行
+                    cursor->x=0;    //x坐标取0
+                }
+                break;
+            case '\v':  //垂直制表符
+                ;
+                break;                
+            case '\b':  //退格
+                if(cursor->x>0){
+                    cursor->x--;
+                }
+                break;
+            default:    //普通字符
+                cursor->x++;
+                if (cursor->x > 79) {   //x>80*2-1,重起一行
+                    cursor->x = 0;
+                    cursor->y++;
+                    if (cursor->y > 24) { //超过最后一行，清屏，从头显示
+                        cursor->y--;
+                        scroll_screen();
+                    }
+                }
+                *addr = *str;   //将字符填入ASCII位置
+                break;
         }
         str++;		// 1c
         addr+=2;	// 2B
     }
     return;
-}
-
-
-/**
- * 对n转换为base进制的字符串
- * 将一个无符号整数n，按照指定进制base进行转换，将转换结果存入str中
- * 返回值就是字符串尾指针
- */
-static char_t *numberk(char_t *str, uint_t n, sint_t base){
-    register char_t *p; //缓冲区指针
-    char_t strbuf[36];  //字符串缓冲区，用于临时存放中间计算结果
-    p = &strbuf[36];    //p=strbuf+36,指向strbuf字符串最后一个元素的后一个元素
-    *--p = 0;
-
-    if (n == 0){
-        *--p = '0';
-    }
-
-    else{
-        do{
-            *--p = "0123456789abcdef"[n % base];    //p始终指向最后填充的数字
-        } while (n /= base);
-    }
-    while (*p != 0){     //字符串结束符为0
-        *str++ = *p++;
-    }
-    return str; //写入完成后返回下一个字符位置
 }
 
 /**
@@ -122,7 +116,6 @@ void clear_screen(u16_t value){
 void init_curs(){
     curs.vmem_s = VGASTR_RAM_BASE;  //缓冲区起始地址
     curs.vmem_e = VGASTR_RAM_END;   //缓冲区结束地址
-    curs.cvmemadr = 0;              //当前显示缓冲区地址
     curs.x = 0;
     curs.y = 0;
     return;
@@ -138,77 +131,87 @@ void close_curs(){
     return;
 }
 
+/**
+ * 类似于C库printf()函数
+ */
+void kprint(const char_t *fmt, ...){
+    char_t buf[512];
+    va_list ap;     //可变参数列表
+    va_start(ap, fmt);  //可变参数列表开始
+    vsprintfk(buf, fmt, ap);    //使用可变参数   
+    va_end(ap);         //可变参数列表结束
+    write_str(buf, &curs); //将字符显示在屏幕上
+    return;
+}
 
 /**
- * 将字符串从str_s中拷贝到buf中，并返回尾指针
+ * 字符串拷贝函数
+ * des:buf
+ * src:str_s
  */
-static char_t *strcopy(char_t *buf, char_t *str_s){
+static char_t *strcopyk(char_t *buf, char_t *str_s){
     while (*str_s){
         *buf = *str_s;
         buf++;
         str_s++;
     }
-    return buf; //为什么最后的字符串指向尾字符？
+    return buf;
 }
 
+/**
+ * 对n转换为base进制的字符串
+ * 将一个无符号整数n，按照指定进制base进行转换，将转换结果存入str中
+ * 返回值就是字符串尾指针
+ */
+static char_t *numberk(char_t *str, uint_t n, sint_t base){
+    register char_t *p; //缓冲区指针
+    char_t strbuf[36];  //字符串缓冲区，用于临时存放中间计算结果
+    p = &strbuf[36];    //p=strbuf+36,指向strbuf字符串最后一个元素的后一个元素
+    *--p = 0;
+    if (n == 0){
+        *--p = '0';
+    }
+    else{
+        do{
+            *--p = "0123456789abcdef"[n % base];    //p始终指向最后填充的数字
+        } while (n /= base);
+    }
+    while (*p != 0){    //字符串结束符为0
+        *str++ = *p++;
+    }
+    return str; //写入完成后返回下一个字符位置
+}
 
 /**
- * 参考C库函数：sprintf(buf,fmt,args)
+ * 功能类似于C标准库sprintf()函数
  */
-void vsprintfk(char_t *buf, const char_t *fmt, va_list_t args){
-    char_t *p = buf;    //字符缓冲区指针
-    va_list_t next_arg = args;  //可变参数列表指针
-    while (*fmt){   //依次取出格式化字符串的字符
-        if (*fmt != '%'){   //如果不是格式控制字符，直接存入缓冲区
-            *p++ = *fmt++;  //写入字符，指针后移
-            continue;   //继续处理后面的字符
+void vsprintfk(char_t *buf, const char_t *fmt, va_list args){
+    char_t *p = buf;
+    while (*fmt){
+        if (*fmt != '%'){
+            *p++ = *fmt++;
+            continue;
         }
-        fmt++;  //读取并跳过'%'
-        switch (*fmt){  //查看%后面的字符
-        case 'x':       //输出16进制的值
-            p = numberk(p, *((long *)next_arg), 16);    //将参数转换为16进制，并写如p位置之后，更新p的位置
-            next_arg += sizeof(long);
-            fmt++;      //指向下一个格式字符
-
+        fmt++;
+        switch (*fmt){
+        case 'x':
+            p = numberk(p, va_arg(args, uint_t), 16);
+            fmt++;
             break;
-        case 'd':       //输出整形值
-            p = numberk(p, *((long *)next_arg), 10);    //将参数转换为10进制
-            next_arg += sizeof(long);
-            fmt++;      //指向下一个格式字符
+        case 'd':
+            p = numberk(p, va_arg(args, uint_t), 10);
+            fmt++;
             break;
-        case 's':       //输出字符串值
-            p = strcopy(p, (char_t *)(*((long *)next_arg)));    //将字符串拷贝到p指向的地址下
-            next_arg += sizeof(long);
+        case 's':
+            p = strcopyk(p, (char_t *)va_arg(args, uint_t));
             fmt++;
             break;
         default:
             break;
         }
     }
-    *p = 0; //添加结束符'\0'
+    *p = 0;
     return;
-}
-
-/**
- * 参考printf()函数
- */ 
-void kprint(const char_t *fmt, ...){
-    char_t buf[512];    //字符缓冲区
- 
-    va_list_t arg = (va_list_t)((char_t *)(&fmt) + sizeof(long));
-
-    vsprintfk(buf, fmt, arg);   //将字符串格式化到buf中
-    write_str(buf, &curs);   //将格式化的buf写入到屏幕上
-    return;
-}
-
-/**
- * 输出提示信息
- */
-void hint(const char_t* fmt,...){
-	kprint(fmt);
-	die(0x200);
-	return;
 }
 
 #pragma GCC push_options

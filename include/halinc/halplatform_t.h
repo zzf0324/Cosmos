@@ -33,6 +33,7 @@
 #define PLFM_ADRSPCE_NR 29
 
 #define INTSRC_MAX 32
+
 /*======================================================================================================================================*/
 #define KRNL_VIRTUAL_ADDRESS_START 0xffff800000000000           //虚拟地址空间起始地址
 #define KRNL_VIRTUAL_ADDRESS_END 0xffffffffffffffff             //虚拟地址空间结束地址
@@ -118,6 +119,7 @@ typedef struct s_MACHBSTART{
 typedef struct s_e820{
     u64_t saddr;        //内存段起始地址
     u64_t lsize;        //内存段大小
+    
     u32_t type;         //内存段类型
 }__attribute__((packed)) e820map_t;
 

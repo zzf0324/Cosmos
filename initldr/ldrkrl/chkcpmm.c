@@ -4,9 +4,12 @@
 
 #include "cmctl.h"
 
-static void display_e820s(e820map_t *e820s,int size){
-    for(int i=0;i<size;i++){
-        kprint("%d:%d,%d,%d\n",i,e820s[i].saddr,e820s[i].lsize,e820s[i].type);
+static void display_e820s(e820map_t *e820s,u32_t size){
+    for(u32_t i=0;i<size;i++){
+    	kprint("%d\t",i);
+        kprint("%d\t",e820s[i].saddr);
+        kprint("%d\t",e820s[i].lsize);
+        kprint("%d\n",e820s[i].type);
     }
 }
 
@@ -33,6 +36,11 @@ void init_mem(machbstart_t *mbsp){
     mbsp->mb_e820nr = (u64_t)len;                       //记录e820map_t结构体数组元素个数
     mbsp->mb_e820sz = len * (sizeof(e820map_t));        //记录e820map_t结构体数组大小(B)
     mbsp->mb_memsz = get_memsize(addr, len);            //根据e820结构体数组大小计算内存大小
+    kprint("address:%x\n",mbsp->mb_e820padr);
+    kprint("number:%d\n",mbsp->mb_e820nr);
+    kprint("e820 size:%d\n",mbsp->mb_e820sz);
+    kprint("mem size:%d\n",mbsp->mb_e820sz);
+	//这个e820数组的大小8*20=160
     return;
 }
 
@@ -120,14 +128,19 @@ void init_bstartpages(machbstart_t *mbsp){
  * 暂时不确定
  */
 void init_meme820(machbstart_t *mbsp){
+    //源地址
     e820map_t *semp = (e820map_t *)((u32_t)(mbsp->mb_e820padr));
+    //e820数组元素数
     u64_t senr = mbsp->mb_e820nr;
+    //目标地址
     e820map_t *demp = (e820map_t *)((u32_t)(mbsp->mb_nextwtpadr));
-    
+    //
     if (1 > move_krlimg(mbsp, (u64_t)((u32_t)demp), (senr * (sizeof(e820map_t))))){
         kerror("move_krlimg err");
     }
 
+    display_e820s((e820map_t*)((u32_t)(mbsp->mb_e820padr)),(int)mbsp->mb_e820nr);
+    
     m2mcopy(semp, demp, (sint_t)(senr * (sizeof(e820map_t))));
     mbsp->mb_e820padr = (u64_t)((u32_t)(demp));
     mbsp->mb_e820sz = senr * (sizeof(e820map_t));
@@ -143,7 +156,6 @@ void mmap(e820map_t **e820s, u32_t *size){
     realadr_call_entry(RLINTNR(0), 0, 0);   //进入实模式调用BIOS中断，获取e820数组，并存入指定地址下
     *size = *((u32_t *)(E80MAP_NR));        //使用指针共享汇编收集的数组大小信息，地址值只是一个无符号数，只有转换为具体类型的指针，才能正确访问和解释该地址下的数据
     *e820s = (e820map_t *)(*((u32_t *)(E80MAP_ADRADR)));    //使用指针，共享汇编收集的数组地址信息
-    display_e820s(*e820s,*size);
     return;
 }
 

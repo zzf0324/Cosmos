@@ -6,7 +6,7 @@
 #include "cosmosmctrl.h"
 
 /**
- * 
+ * 初始化自旋锁
  */
 void hal_spinlock_init(spinlock_t *lock){
     lock->lock = 0;

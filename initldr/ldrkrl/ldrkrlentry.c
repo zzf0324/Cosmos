@@ -8,10 +8,9 @@ void ldrkrl_entry(){
     close_curs();
     clear_screen(VGADP_DFVL);
 
-    hint("//======================= level 2 boostarp =======================//\n");
+    kprint("//======================= level 2 boostarp =======================//\n");
     init_bstartparm();
-    hint("[OK] finishing initlializing the machbstart_t\n");
-    
+
     return;
 }
 

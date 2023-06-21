@@ -9,7 +9,12 @@
  * 向屏幕提示初始化信息
  */
 void hint(const char_t* fmt,...){
-	kprint(fmt);
+	char_t buf[512];
+	va_list ap;		//可变参数列表
+	va_start(ap, fmt);	//可变参数列表开始
+	vsprintfk(buf, fmt, ap);	//使用可变参数
+	gstr_write(&kdftgh, buf);	
+	va_end(ap);			//可变参数列表结束
 	die(0x200);		//延时，便于用户查看
 	return;
 }

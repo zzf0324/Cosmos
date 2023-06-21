@@ -11,42 +11,42 @@ void init_bstartparm(){
     machbstart_t *mbsp = MBSPADR;   //1MB的内存地址,专门用来存放机器信息信息结构体bmachstart
     
     //初始化机器信息结构体
-    machbstart_t_init(mbsp);        //在1MB内存地址处，初始化一个用于保存机器信息的结构体machbstart_t，后续的收集到的信息都放在这个结构体中
-    hint("[OK] finishing initializing the machbstart_t.\n");
+    machbstart_t_init(mbsp);        							        				
+    //在1MB内存地址处，初始化一个用于保存机器信息的结构体machbstart_t，后续的收集到的信息都放在这个结构体中
+    kprint("[OK] finishing initializing the machbstart_t.\n");
     
     //检查CPU：能执行什么形式的代码？，支持长模式吗？
     init_chkcpu(mbsp);
-    hint("[OK] finishing checking CPU.\n");
+    kprint("[OK] finishing checking CPU.\n");
     
     //获取内存布局e820数组
     init_mem(mbsp);
     if (0 == get_wt_imgfilesz(mbsp)){   //获取映像文件Cosmos.eki的大小
         kerror("img file size is 0");
     }
-    hint("[OK] finishing obtaining the memory view.\n");
+    kprint("[OK] finishing obtaining the memory view.\n");
     
     //初始化内核栈
     init_krlstack(mbsp);
-    hint("[OK] finishing initializing the core stack.\n");
+    kprint("[OK] finishing initializing the core stack.\n");
     
     //放置内核文件
     init_krlfile(mbsp);
-    hint("[OK] finishing setting the kernel file.\n");
+    kprint("[OK] finishing setting the kernel file.\n");
     
     //放置字库文件
     init_defutfont(mbsp);
-    hint("[OK] finishing setting the font file.\n");
+    kprint("[OK] finishing setting the font file.\n");
     
     //初始化e820数组
     init_meme820(mbsp);
-    hint("[OK] finishing initializing the e820 array.\n");
+    kprint("[OK] finishing initializing the e820 array.\n");
     
     //建立MMU页表
     init_bstartpages(mbsp);
-    hint("[OK] finishing establishing the MMU page table.\n");
+    kprint("[OK] finishing establishing the MMU page table.\n");
     
-    die(0x300);     //延时
-    
+    die(0x0);     //延时
     //设置图形模式
     init_graph(mbsp);
     return;

@@ -29,8 +29,7 @@ void display(){
 
     //输出文件头描述符信息
     for(u64_t i=0;i<mrddadrs->mdc_fhdnr;i++){
-        hint(fhdsc_p[i].fhd_name);
-        hint("    %d\n", fhdsc_p[i].fhd_frealsz);
+        kprint("%s\t%d\n",fhdsc_p[i].fhd_name,fhdsc_p[i].fhd_frealsz);
     }
     
     return ;

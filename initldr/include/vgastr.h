@@ -35,10 +35,4 @@ void vsprintfk(char_t *buf, const char_t *fmt, va_list_t args);
  */
 void kprint(const char_t *fmt, ...);
 
-/**
- * 输出提示信息
- */
-void hint(const char_t *fmt,...);
-
-
 #endif

@@ -22,11 +22,20 @@
 typedef struct s_CURSOR{
     uint_t vmem_s;      //缓冲区的起始地址vga memory start 
     uint_t vmem_e;      //缓冲区的结束地址vga memory end
-    uint_t cvmemadr;    //当前显示缓冲区的地址current vmem address
     uint_t x;   //光标在屏幕上的位置：x
     uint_t y;   //光标在屏幕上的位置：y
 }cursor_t; 
 
+//将编译器内置的可变参数类型重新命名为va_list
+typedef __builtin_va_list va_list;
+
+//可变参数开始
+#define va_start(ap,np) __builtin_va_start(ap,np)
+
+#define va_arg(ap,ty) __builtin_va_arg(ap,ty)
+
+//可变参数结束
+#define va_end(ap) __builtin_va_end(ap)
 
 #endif
 

@@ -63,6 +63,7 @@ bool_t init_one_pmrge(e820map_t *e8p, phymmarge_t *pmargep){
     if (NULL == e8p || NULL == pmargep){    //参数检查
         return FALSE;
     }
+    //初始化phymmarge_t结构体
     phymmarge_t_init(pmargep);
     switch (e8p->type){
     case RAM_USABLE:    //可用内存
@@ -95,9 +96,9 @@ bool_t init_one_pmrge(e820map_t *e8p, phymmarge_t *pmargep){
     pmargep->pmr_type = type;
     pmargep->pmr_stype = stype;
     pmargep->pmr_flgs = PMR_F_X86_64;
-    pmargep->pmr_saddr = e8p->saddr;
-    pmargep->pmr_lsize = e8p->lsize;
-    pmargep->pmr_end = e8p->saddr + e8p->lsize - 1;
+    pmargep->pmr_saddr = e8p->saddr;    //内存区域起始地址
+    pmargep->pmr_lsize = e8p->lsize;    //内存区域大小
+    pmargep->pmr_end = e8p->saddr + e8p->lsize - 1; //内存区域结束地址
     return TRUE;
 }
 

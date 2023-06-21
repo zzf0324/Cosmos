@@ -75,22 +75,24 @@
 #define VGAADRS 0xa0000ULL
 #define VGAADRD 0xc0000ULL
 
-#define RAM_USABLE 1
-#define RAM_RESERV 2
-#define RAM_ACPIREC 3
-#define RAM_ACPINVS 4
-#define RAM_AREACON 5
-
-#define PMR_T_OSAPUSERRAM 1
-#define PMR_T_RESERVRAM 2
-#define PMR_T_HWUSERRAM 8
-#define PMR_T_ARACONRAM 0xf
-#define PMR_T_BUGRAM 0xff
-#define PMR_F_X86_32 (1<<0)
-#define PMR_F_X86_64 (1<<1)
-#define PMR_F_ARM_32 (1<<2)
-#define PMR_F_ARM_64 (1<<3)
-#define PMR_F_HAL_MASK 0xff
+//e820数组中的内存视图类型
+#define RAM_USABLE 1        //可用内存
+#define RAM_RESERV 2        //保留内存不可使用
+#define RAM_ACPIREC 3       //ACPI data相关的
+#define RAM_ACPINVS 4       //ACPI NVS空间
+#define RAM_AREACON 5       //包含坏内存
+//
+#define PMR_T_OSAPUSERRAM 1     //
+#define PMR_T_RESERVRAM 2       //
+#define PMR_T_HWUSERRAM 8       //
+#define PMR_T_ARACONRAM 0xf     //
+#define PMR_T_BUGRAM 0xff       //
+//
+#define PMR_F_X86_32 (1<<0)     //
+#define PMR_F_X86_64 (1<<1)     //
+#define PMR_F_ARM_32 (1<<2)     //
+#define PMR_F_ARM_64 (1<<3)     //
+#define PMR_F_HAL_MASK 0xff     //
 
 //内存布局信息结构体
 typedef struct s_PHYMMARGE{
